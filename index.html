@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHMK Gaming 🎮</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e90ff, #ff00ff);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 2px 2px 5px #000;
+            animation: glow 1.5s infinite alternate;
+        }
+
+        .sparkle {
+            display: inline-block;
+            animation: sparkle 1s infinite;
+        }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px #fff; }
+            100% { text-shadow: 0 0 20px #ff00ff; }
+        }
+
+        @keyframes sparkle {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .balance {
+            font-size: 1.5em;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .game-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .game-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        .game-play {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translate(-50%, -60%); opacity: 0; }
+            to { transform: translate(-50%, -50%); opacity: 1; }
+        }
+
+        .transaction-section, .admin-section {
+            margin: 20px 0;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        select, input {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 5px;
+            border: none;
+            font-size: 1em;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #00ff00;
+            border: none;
+            border-radius: 5px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #ff00ff;
+            color: white;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 255, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            animation: fadeInOut 3s;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .spin {
+            animation: spin 1s infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .request {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .approve { background: #00ff00; }
+        .reject { background: #ff0000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DHMK Gaming 🎰 <span class="sparkle">✨</span></h1>
+        <div class="balance">လက်ကျန်ငွေ: <span id="balance">0 MMK</span> 💰</div>
+
+        <div class="game-list" id="gameList">
+            <!-- Games will be dynamically added here -->
+        </div>
+
+        <div class="game-play" id="gamePlay" style="display: none;">
+            <h2 id="gameTitle"></h2>
+            <div id="gameContent"></div>
+            <button onclick="closeGame()">ပိတ်ရန် ❌</button>
+        </div>
+
+        <div class="transaction-section">
+            <h2>ငွေသွင်း / ငွေထုတ် 💸</h2>
+            <select id="transactionType">
+                <option value="deposit">ငွေသွင်း</option>
+                <option value="withdraw">ငွေထုတ်</option>
+            </select>
+            <select id="paymentMethod">
+                <option value="kpay">KPay</option>
+                <option value="wave">Wave</option>
+            </select>
+            <input type="number" id="amount" placeholder="ငွေပမာဏ (MMK)" min="100">
+            <input type="text" id="phone" placeholder="ဖုန်းနံပါတ် (ငွေထုတ်အတွက်)">
+            <input type="text" id="trxId" placeholder="လုပ်ငန်းစဉ်နံပါတ် (နောက်ဆုံး ၆ လုံး)">
+            <button onclick="submitTransaction()">တောင်းဆိုရန် 🚀</button>
+        </div>
+
+        <div class="admin-section">
+            <h2>Admin Panel ⚙️</h2>
+            <div id="requests"></div>
+        </div>
+
+        <div class="notification" id="notification"></div>
+    </div>
+
+    <script>
+        // Initial Balance
+        let balance = parseInt(localStorage.getItem('balance')) || 0;
+        document.getElementById('balance').textContent = `${balance} MMK`;
+
+        // Game Data
+        const games = [
+            { name: "Slot Machine 🎰", bet: 500, winChance: 0.3, payout: 1500 },
+            { name: "Lucky Dice 🎲", bet: 300, winChance: 0.5, payout: 600 },
+            { name: "Card Clash 🃏", bet: 1000, winChance: 0.25, payout: 3000 },
+            { name: "Spin Wheel 🎡", bet: 200, winChance: 0.6, payout: 400 },
+            { name: "Dragon Hunt 🐉", bet: 1500, winChance: 0.2, payout: 5000 },
+            { name: "Coin Flip 🪙", bet: 100, winChance: 0.5, payout: 200 },
+            { name: "Treasure Hunt 🗺️", bet: 700, winChance: 0.4, payout: 1500 },
+            { name: "Number Guess 🔢", bet: 800, winChance: 0.3, payout: 2400 },
+            { name: "Roulette 🎯", bet: 1200, winChance: 0.35, payout: 3600 },
+            { name: "Jackpot King 👑", bet: 2000, winChance: 0.1, payout: 10000 }
+        ];
+
+        // Load Games
+        function loadGames() {
+            const gameList = document.getElementById('gameList');
+            games.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.innerHTML = `
+                    ${game.name}<br>
+                    Bet: ${game.bet} MMK<br>
+                    Win: ${game.payout} MMK
+                `;
+                card.onclick = () => startGame(game);
+                gameList.appendChild(card);
+            });
+        }
+        loadGames();
+
+        // Update Balance
+        function updateBalance() {
+            localStorage.setItem('balance', balance);
+            document.getElementById('balance').textContent = `${balance} MMK`;
+        }
+
+        // Notification System
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        // Transaction Logic
+        function submitTransaction() {
+            const type = document.getElementById('transactionType').value;
+            const method = document.getElementById('paymentMethod').value;
+            const amount = parseInt(document.getElementById('amount').value);
+            const phone = document.getElementById('phone').value;
+            const trxId = document.getElementById('trxId').value;
+
+            if (!amount || amount < 100) {
+                showNotification("⚠️ အနည်းဆုံး 100 MMK ထည့်ပါ!");
+                return;
+            }
+
+            if (type === "deposit" && (!trxId || trxId.length !== 6)) {
+                showNotification("⚠️ လုပ်ငန်းစဉ်နံပါတ် (၆ လုံး) ထည့်ပါ!");
+                return;
+            }
+
+            if (type === "withdraw" && (!phone || balance < amount)) {
+                showNotification("⚠️ ဖုန်းနံပါတ် သို့မဟုတ် လက်ကျန်ငွေ မလုံလောက်ပါ!");
+                return;
+            }
+
+            const usedTrxIds = Object.keys(localStorage).filter(key => key.startsWith('trx_'));
+            if (type === "deposit" && usedTrxIds.includes(`trx_${trxId}`)) {
+                showNotification("⚠️ ဒီလုပ်ငန်းစဉ်နံပါတ်ကို အသုံးပြုပြီးပါပြီ!");
+                return;
+            }
+
+            const request = { type, method, amount, phone, trxId: trxId || Date.now(), status: "pending" };
+            localStorage.setItem(`trx_${request.trxId}`, JSON.stringify(request));
+            showNotification(`✅ သင့်တောင်းဆိုမှု Admin ထံ ပို့ပြီးပါပြီ!`);
+            loadRequests();
+        }
+
+        // Admin Logic
+        function loadRequests() {
+            const requestsDiv = document.getElementById('requests');
+            requestsDiv.innerHTML = '';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('trx_')) {
+                    const request = JSON.parse(localStorage.getItem(key));
+                    if (request.status === "pending") {
+                        const div = document.createElement('div');
+                        div.className = 'request';
+                        div.innerHTML = `
+                            အမျိုးအစား: ${request.type} | ငွေပမာဏ: ${request.amount} MMK<br>
+                            နည်းလမ်း: ${request.method} | ဖုန်း: ${request.phone || '-'}<br>
+                            နံပါတ်: ${request.trxId || '-'}
+                            <button class="approve" onclick="approve('${key}')">လက်ခံရန် ✅</button>
+                            <button class="reject" onclick="reject('${key}')">ငြင်းဆိုရန် ❌</button>
+                        `;
+                        requestsDiv.appendChild(div);
+                    }
+                }
+            }
+        }
+
+        function approve(key) {
+            const request = JSON.parse(localStorage.getItem(key));
+            request.status = "approved";
+            localStorage.setItem(key, JSON.stringify(request));
+            if (request.type === "deposit") {
+                balance += request.amount;
+                showNotification(`🎉 ငွေသွင်းမှု အောင်မြင်ပါတယ်! +${request.amount} MMK`);
+            } else if (request.type === "withdraw") {
+                balance -= request.amount;
+                showNotification(`💸 ငွေထုတ်မှု အောင်မြင်ပါတယ်! -${request.amount} MMK`);
+            }
+            updateBalance();
+            loadRequests();
+        }
+
+        function reject(key) {
+            const request = JSON.parse(localStorage.getItem(key));
+            request.status = "rejected";
+            localStorage.setItem(key, JSON.stringify(request));
+            showNotification("❌ Admin မှ ငြင်းဆိုလိုက်ပါတယ်!");
+            loadRequests();
+        }
+
+        setInterval(loadRequests, 1000);
+
+        // Game Play Logic
+        function startGame(game) {
+            if (balance < game.bet) {
+                showNotification("⚠️ လက်ကျန်ငွေ မလုံလောက်ပါ!");
+                return;
+            }
+
+            balance -= game.bet;
+            updateBalance();
+
+            const gamePlay = document.getElementById('gamePlay');
+            const gameTitle = document.getElementById('gameTitle');
+            const gameContent = document.getElementById('gameContent');
+            gamePlay.style.display = 'block';
+            gameTitle.textContent = game.name;
+            gameContent.innerHTML = '';
+
+            if (game.name.includes("Slot Machine")) playSlotMachine(game, gameContent);
+            else if (game.name.includes("Lucky Dice")) playLuckyDice(game, gameContent);
+            else if (game.name.includes("Card Clash")) playCardClash(game, gameContent);
+            else if (game.name.includes("Spin Wheel")) playSpinWheel(game, gameContent);
+            else if (game.name.includes("Dragon Hunt")) playDragonHunt(game, gameContent);
+            else if (game.name.includes("Coin Flip")) playCoinFlip(game, gameContent);
+            else if (game.name.includes("Treasure Hunt")) playTreasureHunt(game, gameContent);
+            else if (game.name.includes("Number Guess")) playNumberGuess(game, gameContent);
+            else if (game.name.includes("Roulette")) playRoulette(game, gameContent);
+            else if (game.name.includes("Jackpot King")) playJackpotKing(game, gameContent);
+        }
+
+        function closeGame() {
+            document.getElementById('gamePlay').style.display = 'none';
+        }
+
+        function playSlotMachine(game, content) {
+            content.innerHTML = `<div class="spin">🎰</div><button onclick="spinSlot(${JSON.stringify(game)})">Spin လုပ်ပါ</button>`;
+        }
+
+        function spinSlot(game) {
+            const win = Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 အနိုင်ရပါတယ်! +${game.payout} MMK`);
+            } else {
+                showNotification(`😢 နောက်တစ်ကြိမ်ကံစမ်းပါ!`);
+            }
+            updateBalance();
+        }
+
+        function playLuckyDice(game, content) {
+            content.innerHTML = `<div>🎲 နံပါတ်: <span id="dice">?</span></div><button onclick="rollDice(${JSON.stringify(game)})">လှိမ့်ပါ</button>`;
+        }
+
+        function rollDice(game) {
+            const dice = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice').textContent = dice;
+            const win = dice > 3 && Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 အနိုင်ရပါတယ်! +${game.payout} MMK`);
+            } else {
+                showNotification(`😢 နောက်တစ်ကြိမ်ကံစမ်းပါ!`);
+            }
+            updateBalance();
+        }
+
+        function playCardClash(game, content) {
+            content.innerHTML = `<div>🃏 ကတ်: <span id="card">?</span></div><button onclick="drawCard(${JSON.stringify(game)})">ကတ်ဆွဲပါ</button>`;
+        }
+
+        function drawCard(game) {
+            const card = Math.floor(Math.random() * 13) + 1;
+            document.getElementById('card').textContent = card;
+            const win = card > 7 && Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 အနိုင်ရပါတယ်! +${game.payout} MMK`);
+            } else {
+                showNotification(`😢 နောက်တစ်ကြိမ်ကံစမ်းပါ!`);
+            }
+            updateBalance();
+        }
+
+        function playSpinWheel(game, content) {
+            content.innerHTML = `<div class="spin">🎡</div><button onclick="spinWheel(${JSON.stringify(game)})">လှည့်ပါ</button>`;
+        }
+
+        function spinWheel(game) {
+            const win = Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 အနိုင်ရပါတယ်! +${game.payout} MMK`);
+            } else {
+                showNotification(`😢 နောက်တစ်ကြိမ်ကံစမ်းပါ!`);
+            }
+            updateBalance();
+        }
+
+        function playDragonHunt(game, content) {
+            content.innerHTML = `<div>🐉 သေနတ်: <span id="shots">3</span></div><button onclick="shootDragon(${JSON.stringify(game)})">ပစ်ပါ</button>`;
+        }
+
+        function shootDragon(game) {
+            let shots = parseInt(document.getElementById('shots').textContent);
+            shots--;
+            document.getElementById('shots').textContent = shots;
+            const win = shots > 0 && Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 နဂါးကို ဖမ်းမိပါတယ်! +${game.payout} MMK`);
+            } else if (shots === 0) {
+                showNotification(`😢 သေနတ်ကျည်ကုန်သွားပါပြီ!`);
+            }
+            updateBalance();
+        }
+
+        function playCoinFlip(game, content) {
+            content.innerHTML = `<div>🪙 ဘက်: <span id="coin">?</span></div><button onclick="flipCoin(${JSON.stringify(game)})">လှန်ပါ</button>`;
+        }
+
+        function flipCoin(game) {
+            const coin = Math.random() < 0.5 ? "Heads" : "Tails";
+            document.getElementById('coin').textContent = coin;
+            const win = Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 အနိုင်ရပါတယ်! +${game.payout} MMK`);
+            } else {
+                showNotification(`😢 နောက်တစ်ကြိမ်ကံစမ်းပါ!`);
+            }
+            updateBalance();
+        }
+
+        function playTreasureHunt(game, content) {
+            content.innerHTML = `<div>🗺️ ရွေးပါ: <button onclick="pickTreasure(${JSON.stringify(game)}, 1)">1</button><button onclick="pickTreasure(${JSON.stringify(game)}, 2)">2</button><button onclick="pickTreasure(${JSON.stringify(game)}, 3)">3</button></div>`;
+        }
+
+        function pickTreasure(game, choice) {
+            const win = choice === Math.floor(Math.random() * 3) + 1 && Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 ရတနာရှာတွေ့ပါတယ်! +${game.payout} MMK`);
+            } else {
+                showNotification(`😢 မတွေ့ပါ!`);
+            }
+            updateBalance();
+        }
+
+        function playNumberGuess(game, content) {
+            content.innerHTML = `<div>🔢 ခန့်မှန်းပါ (1-10): <input type="number" id="guess"><button onclick="guessNumber(${JSON.stringify(game)})">ခန့်မှန်းပါ</button></div>`;
+        }
+
+        function guessNumber(game) {
+            const guess = parseInt(document.getElementById('guess').value);
+            const number = Math.floor(Math.random() * 10) + 1;
+            const win = guess === number && Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 မှန်ပါတယ်! +${game.payout} MMK`);
+            } else {
+                showNotification(`😢 မမှန်ပါ! အဖြေ: ${number}`);
+            }
+            updateBalance();
+        }
+
+        function playRoulette(game, content) {
+            content.innerHTML = `<div>🎯 အရောင်: <button onclick="pickColor(${JSON.stringify(game)}, 'red')">Red</button><button onclick="pickColor(${JSON.stringify(game)}, 'black')">Black</button></div>`;
+        }
+
+        function pickColor(game, color) {
+            const result = Math.random() < 0.5 ? "red" : "black";
+            const win = color === result && Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 အနိုင်ရပါတယ်! +${game.payout} MMK`);
+            } else {
+                showNotification(`😢 မမှန်ပါ! အဖြေ: ${result}`);
+            }
+            updateBalance();
+        }
+
+        function playJackpotKing(game, content) {
+            content.innerHTML = `<div class="spin">👑</div><button onclick="spinJackpot(${JSON.stringify(game)})">Spin လုပ်ပါ</button>`;
+        }
+
+        function spinJackpot(game) {
+            const win = Math.random() < game.winChance;
+            if (win) {
+                balance += game.payout;
+                showNotification(`🎉 JACKPOT အနိုင်ရပါတယ်! +${game.payout} MMK`);
+            } else {
+                showNotification(`😢 နောက်တစ်ကြိမ်ကံစမ်းပါ!`);
+            }
+            updateBalance();
+        }
+    </script>
+</body>
+  </html>
