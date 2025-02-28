@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel ⚙️</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #333;
+            color: white;
+            padding: 20px;
+        }
+        .request {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .approve { background: #00ff00; }
+        .reject { background: #ff0000; }
+    </style>
+</head>
+<body>
+    <h1>Admin Panel ⚙️</h1>
+    <div id="requests"></div>
+
+    <script>
+        function loadRequests() {
+            const requestsDiv = document.getElementById('requests');
+            requestsDiv.innerHTML = '';
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('trx_')) {
+                    const request = JSON.parse(localStorage.getItem(key));
+                    if (request.status === "pending") {
+                        const div = document.createElement('div');
+                        div.className = 'request';
+                        div.innerHTML = `
+                            အမျိုးအစား: ${request.type} | ငွေပမာဏ: ${request.amount} MMK<br>
+                            နည်းလမ်း: ${request.method} | ဖုန်း: ${request.phone || '-'}<br>
+                            နံပါတ်: ${request.trxId || '-'}
+                            <button class="approve" onclick="approve('${key}')">လက်ခံရန် ✅</button>
+                            <button class="reject" onclick="reject('${key}')">ငြင်းဆိုရန် ❌</button>
+                        `;
+                        requestsDiv.appendChild(div);
+                    }
+                }
+            }
+        }
+
+        function approve(key) {
+            const request = JSON.parse(localStorage.getItem(key));
+            request.status = "approved";
+            localStorage.setItem(key, JSON.stringify(request));
+            alert("✅ လက်ခံလိုက်ပါပြီ!");
+            loadRequests();
+        }
+
+        function reject(key) {
+            const request = JSON.parse(localStorage.getItem(key));
+            request.status = "rejected";
+            localStorage.setItem(key, JSON.stringify(request));
+            alert("❌ ငြင်းဆိုလိုက်ပါပြီ!");
+            loadRequests();
+        }
+
+        setInterval(loadRequests, 1000);
+        loadRequests();
+    </script>
+</body>
+</html>
